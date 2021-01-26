@@ -116,20 +116,36 @@ resource "azurerm_virtual_machine" "inbound-fw" {
   vm_size                      = var.vm_size
   availability_set_id          = azurerm_availability_set.az.id
   primary_network_interface_id = azurerm_network_interface.nic-fw-mgmt[each.key].id
-
+ 
   network_interface_ids = [
     azurerm_network_interface.nic-fw-mgmt[each.key].id,
     azurerm_network_interface.nic-fw-public[each.key].id,
     azurerm_network_interface.nic-fw-private[each.key].id
   ]
 
-  storage_image_reference {
-    id        = var.custom_image_id
-    publisher = var.custom_image_id == null ? var.vm_series_publisher : null
-    offer     = var.custom_image_id == null ? var.vm_series_offer : null
-    sku       = var.custom_image_id == null ? var.vm_series_sku : null
-    version   = var.custom_image_id == null ? var.vm_series_version : null
+  storage_os_disk {
+    create_option     = "Attach"
+    name              = "${var.name_prefix}${each.key}-managed"
+    os_type           = "Linux"
+    caching           = "ReadWrite"
+    managed_disk_id   = azurerm_managed_disk.source[each.key].id
   }
+
+#  OS Profiling does not work in this scenario
+#  os_profile {
+#    computer_name  = "${var.name_prefix}${each.key}"
+#    admin_username = var.username
+#    admin_password = var.password
+#    custom_data = join(
+#      ",",
+#      [
+#        "storage-account=${var.bootstrap-storage-account.name}",
+#        "access-key=${var.bootstrap-storage-account.primary_access_key}",
+#        "file-share=${var.bootstrap-share-name}",
+#        "share-directory=None"
+#      ]
+#    )
+#  }
 
   plan {
     name      = var.vm_series_sku
@@ -137,31 +153,39 @@ resource "azurerm_virtual_machine" "inbound-fw" {
     product   = var.vm_series_offer
   }
 
-  storage_os_disk {
-    create_option     = "FromImage"
-    name              = "${var.name_prefix}${each.key}-vhd"
-    managed_disk_type = var.managed_disk_type
-    os_type           = "Linux"
-    caching           = "ReadWrite"
-  }
-
-  os_profile {
-    computer_name  = "${var.name_prefix}${each.key}"
-    admin_username = var.username
-    admin_password = var.password
-    custom_data = join(
-      ",",
-      [
-        "storage-account=${var.bootstrap-storage-account.name}",
-        "access-key=${var.bootstrap-storage-account.primary_access_key}",
-        "file-share=${var.bootstrap-share-name}",
-        "share-directory=None"
-      ]
-    )
-  }
-
   os_profile_linux_config {
     disable_password_authentication = false
   }
 
 }
+
+data "azurerm_platform_image" "this" {
+  location  = var.location
+  publisher = var.vm_series_publisher
+  offer     = var.vm_series_offer
+  sku       = var.vm_series_sku
+  version   = var.vm_series_version
+}
+
+resource "azurerm_managed_disk" "source" {
+  for_each = var.instances
+
+  name                 = "${var.name_prefix}${each.key}-managed"
+  location                     = var.resource_group.location
+  resource_group_name          = var.resource_group.name
+  storage_account_type = var.managed_disk_type
+  #storage_account_type = "Standard_LRS"
+  create_option        = "FromImage"
+  image_reference_id   = data.azurerm_platform_image.this.id
+
+}
+
+# Attachment is not required
+#resource "azurerm_virtual_machine_data_disk_attachment" "this" {
+#  for_each = var.instances
+#
+#  managed_disk_id    = azurerm_managed_disk.source[each.key].id
+#  virtual_machine_id = azurerm_virtual_machine.inbound-fw[each.key].id
+#  lun                = "0"
+#  caching            = "ReadWrite"
+#}
