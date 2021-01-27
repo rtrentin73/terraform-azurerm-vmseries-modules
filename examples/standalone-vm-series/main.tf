@@ -62,6 +62,30 @@ module "inbound-lb" {
 
   location    = azurerm_resource_group.vmseries.location
   name_prefix = var.name_prefix
+  frontend_ips = {
+    "${var.name_prefix}-existing" = {
+      create_public_ip     = false
+      public_ip_address_id = azurerm_public_ip.this.id
+      rules = {
+        "testssh" = {
+          protocol = "Tcp"
+          port     = 22
+        }
+        "testhttp" = {
+          protocol = "Tcp"
+          port     = 80
+        }
+      }
+    }
+  }
+}
+
+resource "azurerm_public_ip" "this" {
+  name                = "${var.name_prefix}lb-pip"
+  location            = azurerm_resource_group.vmseries.location
+  resource_group_name = azurerm_resource_group.vmseries.name
+  allocation_method   = "Static"
+  sku                 = "standard"
 }
 
 module "outbound-lb" {
