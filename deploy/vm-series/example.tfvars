@@ -7,6 +7,13 @@ management_ips = {
   "199.199.199.199" : 100,
 }
 
+instances = {
+  "fw00" = {}
+  "fw01" = {}
+}
+
+vm_series_vm_size = "Standard_D3_v2"
+
 olb_private_ip = "10.110.0.21"
 
 vmseries_subnet_mgmt    = null

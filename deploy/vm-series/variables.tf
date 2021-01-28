@@ -25,9 +25,6 @@ variable "password" {
 
 variable "instances" {
   description = "Map of VM-Series firewall instances to deploy. The keys are the firewall hostnames."
-  default = {
-    "fw00" = {}
-  }
 }
 
 #----------------------#
@@ -102,4 +99,10 @@ variable "vm_series_sku" {
 
 variable "vm_series_version" {
   default = "9.1.6"
+}
+
+variable "vm_series_vm_size" {
+  description = "Azure VM size (type) to be created. Consult the *VM-Series Deployment Guide* as only a few selected sizes are supported."
+  default     = "Standard_D3_v2"
+  type        = string
 }

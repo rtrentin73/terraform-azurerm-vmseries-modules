@@ -76,6 +76,7 @@ module "inbound-vm-series" {
   name_prefix               = var.name_prefix
   username                  = var.username
   password                  = coalesce(var.password, random_password.password.result)
+  vm_size                   = var.vm_series_vm_size
   vm_series_version         = var.vm_series_version
   vm_series_sku             = var.vm_series_sku
   subnet-mgmt               = { id = var.vmseries_subnet_mgmt }
