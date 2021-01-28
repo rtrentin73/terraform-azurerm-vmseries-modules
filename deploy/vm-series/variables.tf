@@ -6,6 +6,7 @@ variable "location" {
   description = "The Azure region to use."
   default     = "Australia Central"
 }
+
 variable "name_prefix" {
   type        = string
   description = "A prefix for all naming conventions - used globally"
@@ -37,73 +38,68 @@ variable "management_ips" {
   description = "A list of IP addresses and/or subnets that are permitted to access the out of band Management network."
 }
 
-# Subnet definitions
-#  All subnet defs are joined with their vnet prefix to form a full CIDR prefix
-#  ex. for management, ${management_vnet_prefix}${management_subnet}
-#  Thus to change the VNET addressing you only need to update the relevent _vnet_prefix variable.
-
-variable "management_vnet_prefix" {
-  default     = "10.255."
-  description = "The private prefix used for the management virtual network"
+variable "vmseries_subnet_mgmt" {
+  description = "Management subnet."
 }
 
-variable "management_subnet" {
-  default     = "0.0/24"
-  description = "The private network that terminates all FW and Panorama IP addresses."
+variable "vmseries_subnet_public" {
+  description = "External/public subnet."
 }
 
-variable "firewall_vnet_prefix" {
-  default     = "10.110."
-  description = "The private prefix used for all firewall networks"
-}
-
-variable "vm_management_subnet" {
-  default     = "255.0/24"
-  description = "The subnet used for the management NICs on the vm-series"
-}
-
-variable "public_subnet" {
-  default     = "129.0/24"
-  description = "The private network that is the external or public side of the VM series firewalls (eth1/1)"
-}
-
-variable "private_subnet" {
-  default     = "0.0/24"
-  description = "The private network behind or on the internal side of the VM series firewalls (eth1/2)"
+variable "vmseries_subnet_private" {
+  description = "Internal/private subnet."
 }
 
 variable "olb_private_ip" {
-  # !! This IP MUST fall in the private-subnet network. !!
-  description = "The private IP address to assign to the Outgoing Load balancer frontend"
-  default     = "10.110.0.21"
+  description = "The private IP address to assign to the Outbound Load Balancer. This IP **must** fall in the `vmseries_subnet_private` network."
 }
-variable "rules" {
-  description = "Inbound Load balancer rules. Largely used for testing the environment, these are mapped to PIPs and then the inbound LB."
-  type = list(object({
-    port = number
-    name = string
-  }))
-  default = []
+
+variable "frontend_ips" {
+  description = <<-EOF
+  A map of objects describing Inbound LB Frontend IP configurations. Keys of the map are the names and values are { create_public_ip, public_ip_address_id, rules }. Example:
+
+  ```
+  {
+    "pip-existing" = {
+      create_public_ip     = false
+      public_ip_address_id = azurerm_public_ip.this.id
+      rules = {
+        "testssh" = {
+          protocol = "Tcp"
+          port     = 22
+        }
+        "testhttp" = {
+          protocol = "Tcp"
+          port     = 80
+        }
+      }
+    }
+    "pip-created" = {
+      create_public_ip = true
+      rules = {
+        "testssh" = {
+          protocol = "Tcp"
+          port     = 22
+        }
+        "testhttp" = {
+          protocol = "Tcp"
+          port     = 80
+        }
+      }
+    }
+  }
+  ```
+  EOF
 }
 
 #----------------------#
 #      VM Options      #
 #----------------------#
-# Total number of VM series per direction (inbound/outbound) to deploy
-variable "vm_series_count" {
-  default = 1
-}
-
-variable "panorama_sku" {
-  default = "byol"
-}
-variable "panorama_version" {
-  default = "9.0.5"
-}
 
 variable "vm_series_sku" {
-  default = "bundle2"
+  default = "byol"
 }
+
 variable "vm_series_version" {
-  default = "9.0.4"
+  default = "9.1.6"
 }

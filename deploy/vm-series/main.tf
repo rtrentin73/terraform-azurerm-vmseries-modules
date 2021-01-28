@@ -11,25 +11,7 @@ resource "random_password" "password" {
   override_special = "_%@"
 }
 
-# Setup all the networks required for the topology
-module "networks" {
-  source = "../../modules/networking"
-
-  location               = var.location
-  management_ips         = var.management_ips
-  name_prefix            = var.name_prefix
-  management_vnet_prefix = var.management_vnet_prefix
-  management_subnet      = var.management_subnet
-  olb_private_ip         = var.olb_private_ip
-  firewall_vnet_prefix   = var.firewall_vnet_prefix
-  private_subnet         = var.private_subnet
-  public_subnet          = var.public_subnet
-  vm_management_subnet   = var.vm_management_subnet
-}
-
 # Create the vm-series RG outside of the module and pass it in.
-## All the config required for a single VM series Firewall in Azure
-# Base resource group
 resource "azurerm_resource_group" "vmseries" {
   location = var.location
   name     = "${var.name_prefix}-vmseries-rg"
@@ -60,8 +42,9 @@ resource "azurerm_public_ip" "public" {
 module "inbound-lb" {
   source = "../../modules/inbound-load-balancer"
 
-  location    = azurerm_resource_group.vmseries.location
-  name_prefix = var.name_prefix
+  location     = azurerm_resource_group.vmseries.location
+  name_prefix  = var.name_prefix
+  frontend_ips = var.frontend_ips
 }
 
 module "outbound-lb" {
@@ -69,7 +52,7 @@ module "outbound-lb" {
 
   location       = var.location
   name_prefix    = var.name_prefix
-  backend-subnet = module.networks.subnet-private.id
+  backend-subnet = var.vmseries_subnet_private
 }
 
 module "bootstrap" {
@@ -93,11 +76,11 @@ module "inbound-vm-series" {
   name_prefix               = var.name_prefix
   username                  = var.username
   password                  = coalesce(var.password, random_password.password.result)
-  vm_series_version         = "9.1.3"
-  vm_series_sku             = "byol"
-  subnet-mgmt               = module.networks.subnet-mgmt
-  subnet-private            = module.networks.subnet-private
-  subnet-public             = module.networks.subnet-public
+  vm_series_version         = var.vm_series_version
+  vm_series_sku             = var.vm_series_sku
+  subnet-mgmt               = { id = var.vmseries_subnet_mgmt }
+  subnet-public             = { id = var.vmseries_subnet_public }
+  subnet-private            = { id = var.vmseries_subnet_private }
   bootstrap-storage-account = module.bootstrap.storage_account
   bootstrap-share-name      = module.bootstrap.storage_share_name
   lb_backend_pool_id        = module.inbound-lb.backend-pool-id
