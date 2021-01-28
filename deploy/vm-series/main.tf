@@ -67,8 +67,8 @@ module "bootstrap" {
   }
 }
 
-# Create inbound vm-series
-module "inbound-vm-series" {
+# Create VM-Series virtual machines for handling Inbound traffic.
+module "inbound" {
   source = "../../modules/vm-series"
 
   resource_group            = azurerm_resource_group.vmseries
