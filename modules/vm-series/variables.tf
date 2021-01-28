@@ -63,6 +63,12 @@ variable "custom_image_id" {
   type        = string
 }
 
+variable "enable_plan" {
+  description = "Accept purchase of the Offer/Plan on the Marketplace."
+  default     = true
+  type        = bool
+}
+
 variable "vm_series_publisher" {
   description = "The Azure Publisher identifier for a image which should be deployed."
   default     = "paloaltonetworks"
