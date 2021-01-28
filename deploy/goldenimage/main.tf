@@ -67,12 +67,10 @@ module "inbound-vm-series" {
   subnet-private            = module.networks.subnet-private
   subnet-public             = module.networks.subnet-public
   bootstrap-storage-account = module.bootstrap.storage_account
-  # bootstrap-share-name      = module.bootstrap.storage_share_name
-  # lb_backend_pool_id        = module.inbound-lb.backend-pool-id
+  enable_backend_pool       = false
   instances = {
-    "fw" = {
+    "PA-VM" = {
       mgmt_public_ip_address_id = azurerm_public_ip.mgmt.id
     }
   }
-  depends_on = [module.bootstrap]
 }
