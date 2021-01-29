@@ -40,7 +40,7 @@ resource "azurerm_public_ip" "mgmt" {
   for_each = var.instances
 
   name                = "${var.name_prefix}${each.key}-mgmt"
-  location            = azurerm_resource_group.vmseries.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.vmseries.name
   allocation_method   = "Static"
   sku                 = "standard"
@@ -51,7 +51,7 @@ resource "azurerm_public_ip" "public" {
   for_each = var.instances
 
   name                = "${var.name_prefix}${each.key}-public"
-  location            = azurerm_resource_group.vmseries.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.vmseries.name
   allocation_method   = "Static"
   sku                 = "standard"
@@ -60,7 +60,7 @@ resource "azurerm_public_ip" "public" {
 module "inbound-lb" {
   source = "../../modules/inbound-load-balancer"
 
-  location    = azurerm_resource_group.vmseries.location
+  location    = var.location
   name_prefix = var.name_prefix
   frontend_ips = {
     "${var.name_prefix}-existing" = {
@@ -82,7 +82,7 @@ module "inbound-lb" {
 
 resource "azurerm_public_ip" "this" {
   name                = "${var.name_prefix}lb-pip"
-  location            = azurerm_resource_group.vmseries.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.vmseries.name
   allocation_method   = "Static"
   sku                 = "standard"
