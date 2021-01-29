@@ -21,3 +21,6 @@ vmseries_subnet_private = null
 vmseries_subnet_public  = null
 
 frontend_ips = {}
+
+subscription_id = null
+tenant_id       = null

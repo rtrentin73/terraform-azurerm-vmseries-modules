@@ -118,3 +118,7 @@ variable "vm_series_vm_size" {
   default     = "Standard_D3_v2"
   type        = string
 }
+
+# SCHRODERS ADDITIONS
+variable subscription_id {}
+variable tenant_id {}
