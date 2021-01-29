@@ -39,3 +39,8 @@ variable "management_ips" {
   type        = map(any)
   description = "A list of IP addresses and/or subnets that are permitted to access the out of band Management network."
 }
+
+
+# SCHRODERS ADDITIONS
+variable subscription_id {}
+variable tenant_id {}
