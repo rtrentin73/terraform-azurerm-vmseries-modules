@@ -53,14 +53,6 @@ module "inbound-lb" {
   frontend_ips = var.frontend_ips
 }
 
-module "outbound-lb" {
-  source = "../../modules/outbound-load-balancer"
-
-  location       = var.location
-  name_prefix    = var.name_prefix
-  backend-subnet = var.vmseries_subnet_private
-}
-
 module "bootstrap" {
   source = "../../modules/vm-bootstrap"
 
