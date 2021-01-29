@@ -8,3 +8,6 @@ venv
 *.tfstate
 *.tfstate.*
 .idea/*
+
+# secrets
+authcodes
