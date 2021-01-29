@@ -84,7 +84,7 @@ module "inbound" {
   bootstrap-share-name      = module.bootstrap.storage_share_name
   lb_backend_pool_id        = module.inbound-lb.backend-pool-id
   instances = { for k, v in var.instances : k => {
-    # mgmt_public_ip_address_id = azurerm_public_ip.mgmt[k].id
+    mgmt_public_ip_address_id = azurerm_public_ip.mgmt[k].id
     nic1_public_ip_address_id = azurerm_public_ip.public[k].id
   } }
 
