@@ -14,8 +14,6 @@ instances = {
 
 vm_series_vm_size = "Standard_D3_v2"
 
-olb_private_ip = "10.110.0.21"
-
 vmseries_subnet_mgmt    = null
 vmseries_subnet_private = null
 vmseries_subnet_public  = null

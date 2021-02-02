@@ -45,8 +45,8 @@ variable "instances" {
 #      Networking      #
 #----------------------#
 variable "management_ips" {
-  type        = map(any)
-  description = "A list of IP addresses and/or subnets that are permitted to access the out of band Management network."
+  description = "A map where the keys are the IP addresses or ranges that are permitted to access the out-of-band management interfaces belonging to firewalls and Panorama devices. The map's values are priorities, integers in the range 102-60000 inclusive. All priorities should be unique."
+  type        = map(number)
 }
 
 variable "vmseries_subnet_mgmt" {
@@ -59,10 +59,6 @@ variable "vmseries_subnet_public" {
 
 variable "vmseries_subnet_private" {
   description = "Internal/private subnet."
-}
-
-variable "olb_private_ip" {
-  description = "The private IP address to assign to the Outbound Load Balancer. This IP **must** fall in the `vmseries_subnet_private` network."
 }
 
 variable "frontend_ips" {
