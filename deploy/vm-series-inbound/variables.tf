@@ -104,11 +104,15 @@ variable "frontend_ips" {
 #----------------------#
 
 variable "vm_series_sku" {
-  default = "byol"
+  description = "VM-series SKU - list available with `az vm image list -o table --all --publisher paloaltonetworks`"
+  default     = "byol"
+  type        = string
 }
 
 variable "vm_series_version" {
-  default = "9.1.6"
+  description = "VM-series PAN-OS version - list available with `az vm image list -o table --all --publisher paloaltonetworks`"
+  default     = "9.1.6"
+  type        = string
 }
 
 variable "vm_series_vm_size" {

@@ -24,7 +24,7 @@ variable "panorama_size" {
 
 variable "panorama_version" {
   default     = "9.1.2"
-  description = "PAN-OS Software version. List published images with `az vm image list --publisher paloaltonetworks --offer panorama --all`"
+  description = "Panorama PAN-OS Software version. List published images with `az vm image list -o table --all --publisher paloaltonetworks --offer panorama`"
 }
 
 variable "username" {
