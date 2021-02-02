@@ -20,19 +20,21 @@ variable "create_resource_group_name" {
 }
 
 variable "existing_resource_group_name" {
-  description = "Name for an existing resource group to use. If null, use instead `create_resource_group_name`."
+  description = "Name of an existing resource group to use. If null, use instead `create_resource_group_name`."
   default     = null
   type        = string
 }
 
 variable "username" {
+  description = "Initial administrative username to use for all systems."
   default     = "panadmin"
-  description = "Username to use for all systems"
+  type        = string
 }
 
 variable "password" {
-  description = "Admin password to use for all systems. Set to null for auto-generated password."
+  description = "Initial administrative password to use for all systems. Set to null for an auto-generated password."
   default     = null
+  type        = string
 }
 
 variable "instances" {
