@@ -131,8 +131,12 @@ resource "azurerm_virtual_machine" "this" {
     storage_uri = var.bootstrap-storage-account.primary_blob_endpoint
   }
 
-  identity {
-    type         = var.identity_type
-    identity_ids = var.identity_ids
+  dynamic identity {
+    for_each = var.identity_type != null && var.identity_type != "" ? [0] : []
+
+    content {
+      type         = var.identity_type
+      identity_ids = var.identity_ids
+    }
   }
 }
