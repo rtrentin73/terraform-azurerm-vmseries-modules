@@ -30,6 +30,12 @@ variable "address_space" {
 
 variable "subnets" {
   description = "Definition of subnets to create."
+  default     = {}
+}
+
+variable "rules" {
+  description = "Definition of subnets to create."
+  default     = {}
 }
 
 variable "location" {
@@ -40,4 +46,14 @@ variable "location" {
 variable "resource_group_name" {
   description = "Name of the Resource Group to create."
   type        = string
+}
+
+variable "route_table_name" {
+  description = "Name of the Route Table to create."
+  type        = string
+}
+
+variable "routes" {
+  description = "Definition of subnets to create."
+  default     = {}
 }

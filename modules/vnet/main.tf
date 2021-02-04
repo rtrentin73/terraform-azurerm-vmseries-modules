@@ -1,7 +1,7 @@
 //Resource Group
 resource "azurerm_resource_group" "this" {
-  count    = var.create_resource_group ? 1 : 0
-  
+  count = var.create_resource_group ? 1 : 0
+
   name     = var.resource_group_name
   location = var.location
 }
@@ -11,13 +11,29 @@ data "azurerm_resource_group" "this" {
   depends_on = [azurerm_resource_group.this]
 }
 
-//Network Security Groups
+//Network Security Groups and Rules
 resource "azurerm_network_security_group" "this" {
   count = var.create_network_security_group ? 1 : 0
 
   name                = var.network_security_group_name
   location            = data.azurerm_resource_group.this.location
   resource_group_name = data.azurerm_resource_group.this.name
+
+  dynamic "security_rule" {
+    for_each = var.rules
+
+    content {
+      name                       = security_rule.value["name"]
+      priority                   = security_rule.value["priority"]
+      direction                  = security_rule.value["direction"]
+      access                     = security_rule.value["access"]
+      protocol                   = security_rule.value["protocol"]
+      source_port_range          = security_rule.value["source_port_range"]
+      destination_port_range     = security_rule.value["destination_port_range"]
+      source_address_prefix      = security_rule.value["source_address_prefix"]
+      destination_address_prefix = security_rule.value["destination_address_prefix"]
+    }
+  }
 }
 
 data "azurerm_network_security_group" "this" {
@@ -26,7 +42,7 @@ data "azurerm_network_security_group" "this" {
   depends_on          = [azurerm_network_security_group.this]
 }
 
-//VNet
+//VNet and Subnet association
 resource "azurerm_virtual_network" "this" {
   count = var.create_virtual_network ? 1 : 0
 
@@ -34,84 +50,49 @@ resource "azurerm_virtual_network" "this" {
   location            = data.azurerm_resource_group.this.location
   resource_group_name = data.azurerm_resource_group.this.name
   address_space       = var.address_space
+
+  dynamic "subnet" {
+    for_each = var.subnets
+
+    content {
+      name           = subnet.value["name"]
+      address_prefix = subnet.value["address_prefix"]
+      security_group = coalesce(subnet.value["security_group"], data.azurerm_network_security_group.this.id)
+    }
+  }
+  depends_on = [azurerm_network_security_group.this]
 }
 
-data "azurerm_virtual_network" "this" {
-  name                = var.virtual_network_name
+# data "azurerm_virtual_network" "this" {
+#   name                = var.virtual_network_name
+#   resource_group_name = data.azurerm_resource_group.this.name
+#   depends_on          = [azurerm_virtual_network.this]
+# }
+
+//Route Table creation
+resource "azurerm_route_table" "this" {
+  name                = var.route_table_name
+  location            = data.azurerm_resource_group.this.location
   resource_group_name = data.azurerm_resource_group.this.name
-  depends_on          = [azurerm_virtual_network.this]
+  disable_bgp_route_propagation = false
+
+  dynamic "route" {
+    for_each = var.routes
+
+    content {
+      name           = route.value["name"]
+      address_prefix = route.value["address_prefix"]
+      next_hop_type  = route.value["next_hop_type"]
+    } 
+  }
+
+  tags = {
+    environment = "Production"
+  }
 }
 
-//Subnets
-// Since subnet can be configured both inline and via the separate azurerm_subnet 
-// resource, we have to explicitly set it to empty slice ([]) to remove it.
-
-resource "azurerm_subnet" "this" {
-  for_each = { for s in var.subnets : s.name => s if s.existing != true }
-
-  name                 = each.value.name
-  resource_group_name  = data.azurerm_virtual_network.this.resource_group_name
-  virtual_network_name = data.azurerm_virtual_network.this.name
-  address_prefixes     = each.value.address_prefixes
-  # security_group       = data.network_security_group_name.this.id
+//Route Table association
+resource "azurerm_subnet_route_table_association" "this" {
+  subnet_id      = azurerm_subnet.this.id
+  route_table_id = azurerm_route_table.this.id
 }
-
-# data "azurerm_subnet" "this" {
-#   for_each = { for s in var.subnets : s.name => s if s.existing == true }
-
-#   name                 = each.value.name //each key?
-#   resource_group_name  = data.azurerm_resource_group.this.name
-#   virtual_network_name = data.azurerm_virtual_network.this.name
-#   security_group       = data.network_security_group_name.this.id
-#   depends_on           = [azurerm_subnet.this]
-# }
-
-# resource "azurerm_network_security_rule" "custom" {
-#   for_each = var.rules
-
-#   name                        = each.key
-#   resource_group_name         = data.azurerm_virtual_network.this.resource_group_name
-#   network_security_group_name = "nsg_1"
-
-#   priority                   = each.value.priority
-#   direction                  = "Inbound"
-#   access                     = "Allow"
-#   protocol                   = "Tcp"
-#   source_port_range          = "*"
-#   destination_port_ranges    = ["22", "80", "1000-2000"]
-#   source_address_prefixes    = ["10.0.0.0/24", "10.1.0.0/24"]
-#   destination_address_prefix = "*"
-# }
-
-
-#   security_rule {
-#     name                       = each.key
-#     priority                   = 100
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "*"
-#     source_address_prefix      = "*"
-#     destination_address_prefix = "*"
-#   }
-
-#   tags = {
-#     environment = "Production"
-#   }
-# }
-
-
-
-
-
-// odwroc kolejnosc, pierw sprawdzaj source i na jego podstawie dobij resource
-
-# data "azurerm_subnet" "this" {
-#   for_each             = { for s in var.subnets : s.name => var.virtual_network_name }
-#   name                 = each.key
-#   virtual_network_name = each.value
-#   resource_group_name  = data.azurerm_resource_group.this.name
-#   depends_on           = [azurerm_subnet.this]
-# }
-
