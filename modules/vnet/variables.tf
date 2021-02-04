@@ -1,28 +1,25 @@
-variable "existing_rg" {
-  description = "Enable this option if you have already created Resource Group."
-  type        = bool
-  default     = false
+//Options enabling a Greenfield deployment
+variable "create_resource_group" {
+  description = "Enable this option if you want to create a new Resource Group, default value set to `true`"
+  default     = true
+}
+variable "create_network_security_group" {
+  description = "Enable this option if you want to create a new Network Security Group, default value set to `true`"
+  default     = true
 }
 
-variable "existing_vnet" {
-  description = "Enable this option if you have already created Virtual Network."
-  type        = bool
-  default     = false
+variable "create_virtual_network" {
+  description = "Enable this option if you want to create a new VNet, default value set to `true`"
+  default     = true
 }
 
-variable "location" {
-  description = "Location of the resources that will be deployed."
-  type        = string
-}
-
-variable "resource_group_name" {
-  description = "Name of the Resource Group to create."
-  type        = string
+//Resource variables
+variable "network_security_group_name" {
+  description = "Name of the Network Security Group to create."
 }
 
 variable "virtual_network_name" {
   description = "Name of the Virtual Network to create."
-  type        = string
 }
 
 variable "address_space" {
@@ -33,4 +30,14 @@ variable "address_space" {
 
 variable "subnets" {
   description = "Definition of subnets to create."
+}
+
+variable "location" {
+  description = "Location of the resources that will be deployed."
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "Name of the Resource Group to create."
+  type        = string
 }
