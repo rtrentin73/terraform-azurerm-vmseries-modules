@@ -93,6 +93,6 @@ resource "azurerm_route_table" "this" {
 
 //Route Table association
 resource "azurerm_subnet_route_table_association" "this" {
-  subnet_id      = azurerm_subnet.this.id
+  subnet_id      = azurerm_virtual_network.this.*.id[0]
   route_table_id = azurerm_route_table.this.id
 }
